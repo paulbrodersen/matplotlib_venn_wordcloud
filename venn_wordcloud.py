@@ -104,8 +104,9 @@ def venn2_wordcloud(sets,
         venn.get_circle_by_idx = _func
 
     # make default set labels larger
-    for label in venn.set_labels:
-        label.set_fontsize(24.)
+    if set_labels:
+        for label in venn.set_labels:
+            label.set_fontsize(24.)
 
     # for each word compute its subset id
     words = list(set.union(*sets))
@@ -209,8 +210,9 @@ def venn3_wordcloud(sets,
         venn.get_circle_by_idx = _func
 
     # make default set labels larger
-    for label in venn.set_labels:
-        label.set_fontsize(24.)
+    if set_labels:
+        for label in venn.set_labels:
+            label.set_fontsize(24.)
 
     # for each word compute its subset id
     words = list(set.union(*sets))
