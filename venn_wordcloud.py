@@ -71,7 +71,7 @@ def venn2_wordcloud(sets,
             Returns a list of words associated with each given subset.
 
         .get_circles_by_idx(idx)
-            Returns the circle patch corresponding to each idx (as in .id2idx).
+            Returns the circle patch corresponding to each idx (idx as in .id2idx).
 
     """
 
@@ -177,7 +177,7 @@ def venn3_wordcloud(sets,
             Returns a list of words associated with each given subset.
 
         .get_circles_by_idx(idx)
-            Returns the circle patch corresponding to each idx (as in .id2idx).
+            Returns the circle patch corresponding to each idx (idx as in .id2idx).
 
     """
 
