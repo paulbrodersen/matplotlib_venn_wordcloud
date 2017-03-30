@@ -300,35 +300,15 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs):
     # not 0-255 as returned by matplotlib-venn
     img_rgba /= 255.
 
-    # plot word clouds on top of venn diagram
-    subax = _add_subplot_axes(ax, (0, 0, 1, 1))
-    subax.imshow(img_rgba, interpolation='bilinear')
+    # create a new axis on top of diagram
+    # to plot word clouds in
+    bbox = ax.get_position() # in figure coordinates
+    fig = ax.get_figure()
+    subax = fig.add_axes(bbox, axisbg=None)
     subax.set_frame_on(False)
     subax.set_xticks([])
     subax.set_yticks([])
 
+    subax.imshow(img_rgba, interpolation='bilinear')
+
     return ExtendedVennDiagram
-
-
-# TODO: eliminate dependency
-def _add_subplot_axes(ax, rect, axisbg='w', axis_alpha=0.):
-    fig = ax.get_figure()
-    box = ax.get_position()
-    width = box.width
-    height = box.height
-    inax_position  = ax.transAxes.transform(rect[0:2])
-    transFigure = fig.transFigure.inverted()
-    infig_position = transFigure.transform(inax_position)
-    x = infig_position[0]
-    y = infig_position[1]
-    width *= rect[2]
-    height *= rect[2]
-    subax = fig.add_axes([x,y,width,height],axisbg=axisbg)
-    x_labelsize = subax.get_xticklabels()[0].get_size()
-    y_labelsize = subax.get_yticklabels()[0].get_size()
-    x_labelsize *= rect[2]**0.5
-    y_labelsize *= rect[3]**0.5
-    subax.xaxis.set_tick_params(labelsize=x_labelsize)
-    subax.yaxis.set_tick_params(labelsize=y_labelsize)
-    subax.patch.set_alpha(axis_alpha)
-    return subax
