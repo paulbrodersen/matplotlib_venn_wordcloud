@@ -2,16 +2,20 @@
 # -*- coding: utf-8 -*-
 
 """
-
+Example use cases.
 """
 
+import matplotlib.pyplot as plt
 import venn_wordcloud; reload(venn_wordcloud)
 
 def ex1():
+    """
+    Minimal example.
+    """
 
     test_string_1 = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
 
-    test_string_2 = " At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
+    test_string_2 = "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
 
     sets = []
 
@@ -46,7 +50,43 @@ def ex2():
 
     return
 
-def _ex3():
+def ex3():
+    """
+    Answer to
+    http://stackoverflow.com/questions/42812083/auto-venn-diagram-text-rendering/42839350#42839350
+    """
+
+    just_dem = ["sincerely", "women", "service", "newsletter", "program", "families",
+                "community", "funding", "important", "million", "department"]
+    dem_and_rep = ["country", "make", "support", "state", "people", "jobs", "American",
+                   "care", "health", "president", "work", "veterans", "tax", "survey",
+                   "years", "need", "economy"]
+    just_rep = ["security", "nation", "Obama", "energy", "law", "spending",
+                "budget", "states", "committee", "passed", "job", "business"]
+    dem = just_dem + dem_and_rep
+    rep = just_rep + dem_and_rep
+
+    def color_func(word, *args, **kwargs):
+        if word in just_dem:
+            # return "#000080" # navy blue
+            return "#0000ff" # blue1
+        elif word in just_rep:
+            # return "#8b0000" # red4
+            return "#ff0000" # red1
+        else:
+            return "#0f0f0f" # gray6 (aka off-black)
+
+    fig, ax = plt.subplots(1,1)
+    ax.set_title("Congress says what?", fontsize=36)
+    venn_wordcloud.venn2_wordcloud([set(dem), set(rep)],
+                                   set_labels=["Democrats", "Republicans"],
+                                   set_edgecolors=['b', 'r'],
+                                   wordcloud_kwargs=dict(color_func=color_func),
+                                   ax=ax)
+
+    return
+
+def _ex():
 
     for string in [test_string_1, test_string_2]:
 
