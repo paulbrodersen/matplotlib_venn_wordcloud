@@ -86,7 +86,7 @@ def venn2_wordcloud(sets,
 
     """
 
-    # check input as requirements for "sets" differs from venn2 "subsets"
+    # check input as requirements for "sets" are more stringent than for venn2 "subsets"
     assert np.all(type(elem) == set for elem in sets), "All elements of 'sets' arguments need to be sets!"
     assert len(sets) == 2, "Number of sets needs to be 2!"
 
@@ -274,63 +274,103 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs, word_to_frequency
     for mpl_text in ExtendedVennDiagram.subset_labels:
         mpl_text.set_text('')
 
-    # divide axis into pixels
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-    width = xlim[1] - xlim[0]
-    height = ylim[1] - ylim[0]
-    x_resolution = 1000
-    y_resolution = int(height * x_resolution / width)
-    x = np.linspace(xlim[0], xlim[1], x_resolution)
-    y = np.linspace(ylim[0], ylim[1], y_resolution)
-    xgrid, ygrid = np.meshgrid(x, y)
-    pixels = np.c_[xgrid.ravel(), ygrid.ravel()]
+    # figure out maximum fontsize for each set,
+    # such that the fontsizes across sets are consistent with the relative frequencies
+    # uid_to_maxfontsize = _get_maxfontsizes(ExtendedVennDiagram)
+    # for uid in ExtendedVennDiagram.uids:
+    #     wc = _get_wordcloud(ExtendedVennDiagram.get_patch_by_id(uid),
+    #                         ExtendedVennDiagram.get_words_by_id(uid),
+    #                         word_to_frequency,
+    #                         **wordcloud_kwargs)
+
+    # initialise an image that spans the axis
+    img = AxisImage(ax)
 
     # create a word cloud for each patch region and combine word clouds into one image
-    img_rgba = np.zeros((y_resolution, x_resolution, 4), dtype=np.float)
     for uid in ExtendedVennDiagram.uids:
-        # get the boolean mask corresponding to each patch
-        patch = ExtendedVennDiagram.get_patch_by_id(uid)
-        path = patch.get_path()
-        mask = path.contains_points(pixels).reshape((y_resolution, x_resolution))
+        wc = _get_wordcloud(img,
+                            ExtendedVennDiagram.get_patch_by_id(uid),
+                            ExtendedVennDiagram.get_words_by_id(uid),
+                            word_to_frequency,
+                            **wordcloud_kwargs)
 
-        # make mask matplotlib-venn compatible
-        mask = (~mask * 255).astype(np.uint8) # black indicates mask position
-        mask = np.flipud(mask) # origin is in upper left
+        # matplotlib alpha values are between 0.-1.,
+        # not 0-255 as returned by matplotlib-venn
+        img.rgba += wc.to_array() / 255.
 
-        # create wordcloud
-        # wordcloud_kwargs.setdefault('color_func', _color_func)
-        wc = WordCloud(mask=mask,
-                       background_color=None,
-                       mode="RGBA",
-                       **wordcloud_kwargs)
-        # text = " ".join(subset2words[uid])
-
-        if not word_to_frequency:
-            text = " ".join(ExtendedVennDiagram.get_words_by_id(uid))
-            wc.generate(text)
-        else:
-            words = ExtendedVennDiagram.get_words_by_id(uid)
-            for word in words:
-                print "{}: {:.3f}".format(word, word_to_frequency[word])
-            wc.generate_from_frequencies({word: word_to_frequency[word] for word in words})
-
-        # add wordcloud to image
-        img_rgba += wc.to_array()
-
-    # matplotlib alpha values are between 0.-1.,
-    # not 0-255 as returned by matplotlib-venn
-    img_rgba /= 255.
-
-    # create a new axis on top of diagram
-    # to plot word clouds in
-    bbox = ax.get_position() # in figure coordinates
-    fig = ax.get_figure()
-    subax = fig.add_axes(bbox, axisbg=None)
-    subax.set_frame_on(False)
-    subax.set_xticks([])
-    subax.set_yticks([])
-
-    subax.imshow(img_rgba, interpolation='bilinear')
+    img.imshow()
 
     return ExtendedVennDiagram
+
+def _get_wordcloud(img, patch, words, word_to_frequency=None, **wordcloud_kwargs):
+
+    # get the boolean mask corresponding to each patch
+    path = patch.get_path()
+    mask = path.contains_points(img.pixel_coordinates).reshape((img.y_resolution, img.x_resolution))
+
+    # make mask matplotlib-venn compatible
+    mask = (~mask * 255).astype(np.uint8) # black indicates mask position
+    mask = np.flipud(mask) # origin is in upper left
+
+    # create wordcloud
+    wc = WordCloud(mask=mask,
+                   background_color=None,
+                   mode="RGBA",
+                   **wordcloud_kwargs)
+
+    if not word_to_frequency:
+        text = " ".join(words)
+        wc.generate(text)
+    else:
+        # for word in words:
+        #     print "{}: {:.3f}".format(word, word_to_frequency[word])
+        wc.generate_from_frequencies({word: word_to_frequency[word] for word in words})
+
+    return wc
+
+class AxisImage(object):
+    """
+    Create an image that spans the given axis.
+    """
+
+    def __init__(self, ax, resolution=1000):
+        self.ax = ax
+        self.x_resolution = resolution
+
+        # set resolution in y
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        width = xlim[1] - xlim[0]
+        height = ylim[1] - ylim[0]
+        self.y_resolution = int(height * self.x_resolution / width)
+
+        # determine pixel coordinates
+        x = np.linspace(xlim[0], xlim[1], self.x_resolution)
+        y = np.linspace(ylim[0], ylim[1], self.y_resolution)
+        xgrid, ygrid = np.meshgrid(x, y)
+        self.pixel_coordinates = np.c_[xgrid.ravel(), ygrid.ravel()]
+
+        # initialise pixel array
+        self.rgba = np.zeros((self.y_resolution, self.x_resolution, 4), dtype=np.float)
+        return
+
+    def imshow(self):
+        # create a new axis on top of existing axis
+        bbox = self.ax.get_position() # in figure coordinates
+        fig = self.ax.get_figure()
+        subax = fig.add_axes(bbox, axisbg=None)
+
+        # plot image
+        subax.imshow(self.rgba, interpolation='bilinear')
+
+        # make pretty
+        subax.set_frame_on(False)
+        subax.set_xticks([])
+        subax.set_yticks([])
+        return
+
+# def _get_maxfontsizes(ExtendedVennDiagram):
+
+#     for uid in ExtendedVennDiagram.uids:
+
+#     return uid_to_maxfontsize
