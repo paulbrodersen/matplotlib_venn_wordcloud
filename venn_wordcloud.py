@@ -6,6 +6,13 @@ Given 2 or 3 sets or words, create a Venn diagram
 with word clouds corresponding to each subset.
 """
 
+"""
+TODO:
+- make scaling of word sizes consistent;
+  if word_to_frequency is provided, the scaling is correct within that set;
+  the scaling is not consistent between sets
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
@@ -22,6 +29,7 @@ def venn2_wordcloud(sets,
                     set_edgecolors=['k', 'k'],
                     alpha=0.4,
                     ax=None,
+                    word_to_frequency=None,
                     wordcloud_kwargs={'color_func':_default_color_func}):
 
     """
@@ -48,6 +56,9 @@ def venn2_wordcloud(sets,
 
     ax: matplotlib.axes._subplots.AxesSubplot instance or None
         axis to plot on
+
+    word_to_frequency: dict or None (default: None)
+        maps words to relative frequencies; used to scale word fontsizes
 
     wordcloud_kwargs: dict
         passed to wordcloud.WordCloud;
@@ -119,7 +130,7 @@ def venn2_wordcloud(sets,
         return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
     venn.get_words_by_id = _func
 
-    return _venn_wordcloud(venn, ax, wordcloud_kwargs)
+    return _venn_wordcloud(venn, ax, wordcloud_kwargs, word_to_frequency)
 
 
 def venn3_wordcloud(sets,
@@ -128,6 +139,7 @@ def venn3_wordcloud(sets,
                     set_edgecolors=['k', 'k', 'k'],
                     alpha=0.8,
                     ax=None,
+                    word_to_frequency=None,
                     wordcloud_kwargs={'color_func':_default_color_func}):
 
     """
@@ -154,6 +166,9 @@ def venn3_wordcloud(sets,
 
     ax: matplotlib.axes._subplots.AxesSubplot instance or None
         axis to plot on
+
+    word_to_frequency: dict or None (default: None)
+        maps words to relative frequencies; used to scale word fontsizes
 
     wordcloud_kwargs: dict
         passed to wordcloud.WordCloud;
@@ -225,10 +240,10 @@ def venn3_wordcloud(sets,
         return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
     venn.get_words_by_id = _func
 
-    return _venn_wordcloud(venn, ax, wordcloud_kwargs)
+    return _venn_wordcloud(venn, ax, wordcloud_kwargs, word_to_frequency)
 
 
-def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs):
+def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs, word_to_frequency=None):
     """
     Adds a wordcloud to an ExtendedVennDiagram.
 
@@ -290,8 +305,15 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs):
                        mode="RGBA",
                        **wordcloud_kwargs)
         # text = " ".join(subset2words[uid])
-        text = " ".join(ExtendedVennDiagram.get_words_by_id(uid))
-        wc.generate(text)
+
+        if not word_to_frequency:
+            text = " ".join(ExtendedVennDiagram.get_words_by_id(uid))
+            wc.generate(text)
+        else:
+            words = ExtendedVennDiagram.get_words_by_id(uid)
+            for word in words:
+                print "{}: {:.3f}".format(word, word_to_frequency[word])
+            wc.generate_from_frequencies({word: word_to_frequency[word] for word in words})
 
         # add wordcloud to image
         img_rgba += wc.to_array()

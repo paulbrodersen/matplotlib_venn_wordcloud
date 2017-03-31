@@ -4,7 +4,7 @@
 """
 Example use cases.
 """
-
+import numpy as np
 import matplotlib.pyplot as plt
 import venn_wordcloud; reload(venn_wordcloud)
 
@@ -76,12 +76,19 @@ def ex3():
         else:
             return "#0f0f0f" # gray6 (aka off-black)
 
+    # for testing, assign random word frequencies;
+    words = just_dem + dem_and_rep + just_rep
+    frequencies = np.random.rand(len(words))
+    frequencies /= np.sum(frequencies)
+    word_to_frequency = dict(zip(words, frequencies))
+
     fig, ax = plt.subplots(1,1)
     ax.set_title("Congress says what?", fontsize=36)
     venn_wordcloud.venn2_wordcloud([set(dem), set(rep)],
                                    set_labels=["Democrats", "Republicans"],
                                    set_edgecolors=['b', 'r'],
-                                   wordcloud_kwargs=dict(color_func=color_func),
+                                   word_to_frequency=word_to_frequency,
+                                   wordcloud_kwargs=dict(color_func=color_func, relative_scaling=.5),
                                    ax=ax)
 
     return
@@ -112,3 +119,48 @@ def _ex():
         fontsizes = counts / max_count * max_fontsize
 
     return
+
+# def word_frequencies_to_string(words, frequencies, delimiter=' '):
+#     """
+#     Create a string by repeating words according to their frequency.
+#     The least frequent word occurs once.
+#     """
+
+#     frequencies = np.array(frequencies)
+#     counts = np.round(frequencies / np.min(frequencies))
+
+#     string = ''
+#     for word, count in zip(words, counts):
+#         string += ' '.join([word] * int(count))
+#         string += ' '
+
+#     return string
+
+# def test_word_counter():
+#     from collections import Counter
+#     counter = Counter()
+
+#     string = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
+
+#     sets = []
+
+#     # convert to all lower case
+#     string = string.lower()
+
+#     # get a word list
+#     words = string.split(' ')
+
+#     # remove non alphanumeric characters
+#     words = [''.join(ch for ch in word if ch.isalnum()) for word in words]
+
+#     for word in words:
+#         counter[word] += 1
+#     words, counts = counter.keys(), np.array(counter.values())
+
+#     frequencies = counts / float(np.sum(counts))
+#     string2 = word_frequencies_to_string(words, frequencies, delimiter=' ')
+
+#     print string
+#     print string2
+
+#     return
