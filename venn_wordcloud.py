@@ -6,13 +6,6 @@ Given 2 or 3 sets or words, create a Venn diagram
 with word clouds corresponding to each subset.
 """
 
-"""
-TODO:
-- make scaling of word sizes consistent;
-  if word_to_frequency is provided, the scaling is correct within that set;
-  the scaling is not consistent between sets
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
@@ -62,10 +55,11 @@ def venn2_wordcloud(sets,
 
     wordcloud_kwargs: dict
         passed to wordcloud.WordCloud;
-        some arguments are fixed, including
+        some arguments are fixed, namely
             - background_color (None)
             - mode ("RGBA")
             - mask (computed based on subset patches)
+            - max_font_size (computed to keep font sizes consistent across patches)
 
     Returns:
     --------
@@ -130,7 +124,7 @@ def venn2_wordcloud(sets,
         return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
     venn.get_words_by_id = _func
 
-    return _venn_wordcloud(venn, ax, wordcloud_kwargs, word_to_frequency)
+    return _venn_wordcloud(venn, ax, word_to_frequency, **wordcloud_kwargs)
 
 
 def venn3_wordcloud(sets,
@@ -172,10 +166,11 @@ def venn3_wordcloud(sets,
 
     wordcloud_kwargs: dict
         passed to wordcloud.WordCloud;
-        some arguments are fixed, including
+        some arguments are fixed, namely
             - background_color (None)
             - mode ("RGBA")
             - mask (computed based on subset patches)
+            - max_font_size (computed to keep font sizes consistent across patches)
 
     Returns:
     --------
@@ -240,10 +235,10 @@ def venn3_wordcloud(sets,
         return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
     venn.get_words_by_id = _func
 
-    return _venn_wordcloud(venn, ax, wordcloud_kwargs, word_to_frequency)
+    return _venn_wordcloud(venn, ax, word_to_frequency, **wordcloud_kwargs)
 
 
-def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs, word_to_frequency=None):
+def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud_kwargs):
     """
     Adds a wordcloud to an ExtendedVennDiagram.
 
@@ -274,31 +269,45 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, wordcloud_kwargs, word_to_frequency
     for mpl_text in ExtendedVennDiagram.subset_labels:
         mpl_text.set_text('')
 
-    # figure out maximum fontsize for each set,
-    # such that the fontsizes across sets are consistent with the relative frequencies
-    # uid_to_maxfontsize = _get_maxfontsizes(ExtendedVennDiagram)
-    # for uid in ExtendedVennDiagram.uids:
-    #     wc = _get_wordcloud(ExtendedVennDiagram.get_patch_by_id(uid),
-    #                         ExtendedVennDiagram.get_words_by_id(uid),
-    #                         word_to_frequency,
-    #                         **wordcloud_kwargs)
-
     # initialise an image that spans the axis
-    img = AxisImage(ax)
+    img = _AxisImage(ax)
 
-    # create a word cloud for each patch region and combine word clouds into one image
-    for uid in ExtendedVennDiagram.uids:
+    # figure out maximum fontsize for each set/wordcloud,
+    # such that the fontsizes across sets/wordclouds are consistent with the relative frequencies
+    max_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
+    frequencies = np.ones_like(max_font_sizes)
+    for ii, uid in enumerate(ExtendedVennDiagram.uids):
         wc = _get_wordcloud(img,
                             ExtendedVennDiagram.get_patch_by_id(uid),
                             ExtendedVennDiagram.get_words_by_id(uid),
                             word_to_frequency,
                             **wordcloud_kwargs)
 
+        font_sizes = [item[1] for item in wc.layout_]
+        max_font_sizes[ii] = np.max(font_sizes)
+
+        if word_to_frequency:
+            idx = np.argmax(font_sizes)
+            word = wc.layout_[idx][0][0]
+            frequencies[ii] = word_to_frequency[word]
+
+    idx = np.argmin(max_font_sizes / frequencies)
+    max_font_sizes = frequencies * max_font_sizes[idx] / frequencies[idx]
+
+    # create a word cloud for each patch region and combine word clouds into one image
+    for ii, uid in enumerate(ExtendedVennDiagram.uids):
+        wc = _get_wordcloud(img,
+                            ExtendedVennDiagram.get_patch_by_id(uid),
+                            ExtendedVennDiagram.get_words_by_id(uid),
+                            word_to_frequency,
+                            max_font_size=max_font_sizes[ii],
+                            **wordcloud_kwargs)
+
         # matplotlib alpha values are between 0.-1.,
-        # not 0-255 as returned by matplotlib-venn
+        # not 0-255 as returned by wordcloud
         img.rgba += wc.to_array() / 255.
 
-    img.imshow()
+    img.imshow(interpolation='bilinear')
 
     return ExtendedVennDiagram
 
@@ -322,13 +331,11 @@ def _get_wordcloud(img, patch, words, word_to_frequency=None, **wordcloud_kwargs
         text = " ".join(words)
         wc.generate(text)
     else:
-        # for word in words:
-        #     print "{}: {:.3f}".format(word, word_to_frequency[word])
         wc.generate_from_frequencies({word: word_to_frequency[word] for word in words})
 
     return wc
 
-class AxisImage(object):
+class _AxisImage(object):
     """
     Create an image that spans the given axis.
     """
@@ -354,23 +361,17 @@ class AxisImage(object):
         self.rgba = np.zeros((self.y_resolution, self.x_resolution, 4), dtype=np.float)
         return
 
-    def imshow(self):
+    def imshow(self, **imshow_kwargs):
         # create a new axis on top of existing axis
         bbox = self.ax.get_position() # in figure coordinates
         fig = self.ax.get_figure()
         subax = fig.add_axes(bbox, axisbg=None)
 
         # plot image
-        subax.imshow(self.rgba, interpolation='bilinear')
+        subax.imshow(self.rgba, **imshow_kwargs)
 
         # make pretty
         subax.set_frame_on(False)
         subax.set_xticks([])
         subax.set_yticks([])
         return
-
-# def _get_maxfontsizes(ExtendedVennDiagram):
-
-#     for uid in ExtendedVennDiagram.uids:
-
-#     return uid_to_maxfontsize
