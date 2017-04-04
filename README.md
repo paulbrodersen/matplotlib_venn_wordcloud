@@ -8,14 +8,6 @@ The words are plotted as a word cloud on top.
 Depends on [matplotlib-venn](https://github.com/konstantint/matplotlib-venn)
 and [wordcloud](https://github.com/amueller/word_cloud) and their dependencies for the heavy lifting.
 
-## Installation
-
-Easiest via pip:
-
-``` shell
-pip install matplotlib_venn_wordcloud
-```
-
 ## Example
 
 ``` python
@@ -42,4 +34,12 @@ for string in [test_string_1, test_string_2]:
 
 # create visualisation
 venn2_wordcloud(sets)
+```
+
+## Installation
+
+Easiest via pip:
+
+``` shell
+pip install matplotlib_venn_wordcloud
 ```
