@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'matplotlib_venn_wordcloud',
     packages = ['matplotlib_venn_wordcloud'],
@@ -19,5 +19,5 @@ setup(
         'Topic :: Scientific/Engineering :: Visualization'
     ],
     platforms=['Platform Independent'],
-    install_requires=['matplotlib', 'numpy', 'scipy', 'matplotlib-venn', 'wordcloud'],
+    install_requires=['numpy', 'matplotlib', 'matplotlib-venn', 'wordcloud'],
 )
