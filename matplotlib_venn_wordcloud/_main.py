@@ -28,7 +28,7 @@ Create a Venn diagram with word clouds corresponding to each subset.
 
 Example:
 
-import venn_wordcloud
+from matplotlib_venn_wordcloud import venn2_wordcloud
 
 test_string_1 = "Lorem ipsum dolor sit amet, consetetur sadipscing
 elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore
@@ -42,8 +42,6 @@ sets = []
 
 # tokenize words (approximately at least):
 for string in [test_string_1, test_string_2]:
-    # convert to all lower case
-    string = string.lower()
 
     # get a word list
     words = string.split(' ')
@@ -51,10 +49,13 @@ for string in [test_string_1, test_string_2]:
     # remove non alphanumeric characters
     words = [''.join(ch for ch in word if ch.isalnum()) for word in words]
 
+    # convert to all lower case
+    words = [word.lower() for word in words]
+
     sets.append(set(words))
 
 # create visualisation
-venn_wordcloud.venn2_wordcloud(sets)
+venn2_wordcloud(sets)
 
 """
 

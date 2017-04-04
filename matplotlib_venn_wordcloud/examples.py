@@ -6,7 +6,7 @@ Example use cases.
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import venn_wordcloud; reload(venn_wordcloud)
+from matplotlib_venn_wordcloud import venn2_wordcloud, venn3_wordcloud
 
 def ex1():
     """
@@ -17,11 +17,9 @@ def ex1():
 
     test_string_2 = "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
 
+    # tokenize words (approximately at least):
     sets = []
-
     for string in [test_string_1, test_string_2]:
-        # convert to all lower case
-        string = string.lower()
 
         # get a word list
         words = string.split(' ')
@@ -29,9 +27,13 @@ def ex1():
         # remove non alphanumeric characters
         words = [''.join(ch for ch in word if ch.isalnum()) for word in words]
 
+        # convert to all lower case
+        words = [word.lower() for word in words]
+
         sets.append(set(words))
 
-    venn_wordcloud.venn2_wordcloud(sets)
+    # create visualisation
+    venn2_wordcloud(sets)
 
     return
 
@@ -45,8 +47,8 @@ def ex2():
     Wnt = ['GLI1', 'PTCH1', 'WNT5A', 'HHIP1', 'MYCN', 'CCND1', 'WNT7A', 'WNT2', 'CDK1', 'CK1']
     CC = ['GLI1', 'CCNDA', 'BMP4', 'BMP7', 'MTOC2', 'CCND1']
 
-    venn_wordcloud.venn3_wordcloud([set(HH), set(Wnt), set(CC)],
-                                   set_labels=['Hedgehog', 'Wnt', 'Cell Cycle'])
+    venn3_wordcloud([set(HH), set(Wnt), set(CC)],
+                    set_labels=['Hedgehog', 'Wnt', 'Cell Cycle'])
 
     return
 
@@ -92,11 +94,11 @@ def ex3():
 
     fig, ax = plt.subplots(1,1)
     ax.set_title("Congress says what?", fontsize=36)
-    venn_wordcloud.venn2_wordcloud([set(dem), set(rep)],
-                                   set_labels=["Democrats", "Republicans"],
-                                   set_edgecolors=['b', 'r'],
-                                   word_to_frequency=word_to_frequency,
-                                   wordcloud_kwargs=dict(color_func=color_func, relative_scaling=.5),
-                                   ax=ax)
+    venn2_wordcloud([set(dem), set(rep)],
+                    set_labels=["Democrats", "Republicans"],
+                    set_edgecolors=['b', 'r'],
+                    word_to_frequency=word_to_frequency,
+                    wordcloud_kwargs=dict(color_func=color_func, relative_scaling=.5),
+                    ax=ax)
 
     return
