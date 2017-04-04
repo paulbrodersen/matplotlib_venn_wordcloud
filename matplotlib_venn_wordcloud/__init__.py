@@ -70,4 +70,4 @@ venn_wordcloud.venn2_wordcloud(sets)
 
 from matplotlib_venn_wordcloud._main import venn2_wordcloud, venn3_wordcloud
 __all__ = ['venn2_wordcloud', 'venn3_wordcloud']
-__version__ = '0.1'
+__version__ = '0.2'

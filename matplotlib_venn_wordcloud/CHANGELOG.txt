@@ -1,0 +1,9 @@
+Version 0.2
+-----------
+
+    Change license to MIT.
+
+Version 0.1
+-----------
+
+    Initial release.
