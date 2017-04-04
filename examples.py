@@ -76,10 +76,18 @@ def ex3():
         else:
             return "#0f0f0f" # gray6 (aka off-black)
 
-    # for testing, assign random word frequencies;
     words = just_dem + dem_and_rep + just_rep
-    frequencies = np.random.rand(len(words))
-    frequencies /= np.sum(frequencies)
+
+    # for testing, assign random word frequencies;
+    # frequencies = np.random.rand(len(words))
+    # frequencies /= np.sum(frequencies)
+
+    # word frequencies follow Zipf's law;
+    # words will probably be within the 10k most frequent words;
+    # however, we will probably exclude the 1000 most common words from analysis;
+    frequencies = 1. / np.arange(1000, 10000) # Zipf's law with alpha = 1
+    frequencies = np.random.choice(frequencies, size=len(words))
+
     word_to_frequency = dict(zip(words, frequencies))
 
     fig, ax = plt.subplots(1,1)

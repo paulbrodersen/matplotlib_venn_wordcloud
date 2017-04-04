@@ -1,9 +1,61 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# matplotlib_venn_wordcloud.py --- Create a Venn diagram with word clouds corresponding to each subset.
+
+# Copyright (C) 2016 Paul Brodersen <paulbrodersen+matplotlib_venn_wordcloud@gmail.com>
+
+# Author: Paul Brodersen <paulbrodersen+matplotlib_venn_wordcloud@gmail.com>
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 """
-Given 2 or 3 sets or words, create a Venn diagram
-with word clouds corresponding to each subset.
+Matplotlib Venn Wordcloud
+=========================
+
+Create a Venn diagram with word clouds corresponding to each subset.
+
+Example:
+
+import venn_wordcloud
+
+test_string_1 = "Lorem ipsum dolor sit amet, consetetur sadipscing
+elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore
+magna aliquyam erat, sed diam voluptua."
+
+test_string_2 = "At vero eos et accusam et justo duo dolores et ea
+rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem
+ipsum dolor sit amet."
+
+sets = []
+
+# tokenize words (approximately at least):
+for string in [test_string_1, test_string_2]:
+    # convert to all lower case
+    string = string.lower()
+
+    # get a word list
+    words = string.split(' ')
+
+    # remove non alphanumeric characters
+    words = [''.join(ch for ch in word if ch.isalnum()) for word in words]
+
+    sets.append(set(words))
+
+# create visualisation
+venn_wordcloud.venn2_wordcloud(sets)
+
 """
 
 import numpy as np
@@ -11,10 +63,8 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from matplotlib_venn import venn2, venn3, venn2_circles, venn3_circles
 
-
 def _default_color_func(*args, **kwargs):
     return '#00000f'
-
 
 def venn2_wordcloud(sets,
                     set_labels=None,
@@ -274,7 +324,9 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
 
     # figure out maximum fontsize for each set/wordcloud,
     # such that the fontsizes across sets/wordclouds are consistent with the relative frequencies
+    # TODO: also take word bbox width into account
     max_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
+    # max_bbox_widths = np.zeros_like(max_font_sizes)
     frequencies = np.ones_like(max_font_sizes)
     for ii, uid in enumerate(ExtendedVennDiagram.uids):
         wc = _get_wordcloud(img,
@@ -284,6 +336,7 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
                             **wordcloud_kwargs)
 
         font_sizes = [item[1] for item in wc.layout_]
+        # bbox_widths = [len(item[0][0]) * item[1] for item in wc.layout_] # word, freq
         max_font_sizes[ii] = np.max(font_sizes)
 
         if word_to_frequency:

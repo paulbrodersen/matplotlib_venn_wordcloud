@@ -1,4 +1,4 @@
-# venn_wordcloud
+# matplotlib_venn_wordcloud
 
 Plot a Venn diagram based on two sets of words.
 The words are plotted as a word cloud on top.
