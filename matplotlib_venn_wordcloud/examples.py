@@ -34,7 +34,6 @@ def ex1():
 
     # create visualisation
     venn2_wordcloud(sets)
-    plt.show()   
 
     return
 
@@ -50,7 +49,6 @@ def ex2():
 
     venn3_wordcloud([set(HH), set(Wnt), set(CC)],
                     set_labels=['Hedgehog', 'Wnt', 'Cell Cycle'])
-    plt.show() 
 
     return
 
@@ -102,15 +100,13 @@ def ex3():
                     word_to_frequency=word_to_frequency,
                     wordcloud_kwargs=dict(color_func=color_func, relative_scaling=.5),
                     ax=ax)
-    plt.show() 
 
     return
 
 if __name__ == "__main__":
     
-    # uncomment the example that you would like to run
     ex1()
-    # ex2()
-    # ex3()
-    
+    ex2()
+    ex3()
+    plt.show() 
 
