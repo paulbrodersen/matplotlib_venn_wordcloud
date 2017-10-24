@@ -35,7 +35,7 @@ for string in [test_string_1, test_string_2]:
 # create visualisation
 venn2_wordcloud(sets)
 ```
-You can also run [examples.py](https://github.com/jasonschray/matplotlib_venn_wordcloud/blob/master/matplotlib_venn_wordcloud/examples.py) as main.
+You can also run [examples.py](matplotlib_venn_wordcloud/examples.py) as main.
 
 ``` 
     python examples.py
