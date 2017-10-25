@@ -102,3 +102,11 @@ def ex3():
                     ax=ax)
 
     return
+
+if __name__ == "__main__":
+    
+    ex1()
+    ex2()
+    ex3()
+    plt.show() 
+
