@@ -103,7 +103,6 @@ def ex3():
 
     return
 
-
 def ex4():
     """
     Issue #2:
@@ -119,5 +118,15 @@ def ex4():
     s = (x,y)
 
     v = venn2_wordcloud(s)
+
+    plt.show()
+
+
+if __name__ == "__main__":
+
+    ex1()
+    ex2()
+    ex3()
+    ex4()
 
     plt.show()
