@@ -102,3 +102,22 @@ def ex3():
                     ax=ax)
 
     return
+
+
+def ex4():
+    """
+    Issue #2:
+    https://github.com/paulbrodersen/matplotlib_venn_wordcloud/issues/2
+    """
+
+    from matplotlib import pyplot as plt
+    from matplotlib_venn_wordcloud import venn2_wordcloud
+
+    x = {'sincerely','department', 'usa', 'usa nation'}
+    y = {'sincerely','security','usa democracy'}
+
+    s = (x,y)
+
+    v = venn2_wordcloud(s)
+
+    plt.show()

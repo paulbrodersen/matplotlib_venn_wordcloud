@@ -392,10 +392,15 @@ def _get_wordcloud(img, patch, words, word_to_frequency=None, **wordcloud_kwargs
                    **wordcloud_kwargs)
 
     if not word_to_frequency:
-        text = " ".join(words)
-        wc.generate(text)
-    else:
-        wc.generate_from_frequencies({word: word_to_frequency[word] for word in words})
+        # create mapping word : int
+        word_to_frequency = dict()
+        for word in words:
+            try:
+                word_to_frequency[word] += 1
+            except KeyError:
+                word_to_frequency[word] = 1
+
+    wc.generate_from_frequencies({word: word_to_frequency[word] for word in words})
 
     return wc
 
