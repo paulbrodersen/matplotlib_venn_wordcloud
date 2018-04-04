@@ -434,7 +434,7 @@ class _AxisImage(object):
         # create a new axis on top of existing axis
         bbox = self.ax.get_position() # in figure coordinates
         fig = self.ax.get_figure()
-        subax = fig.add_axes(bbox, axisbg=None)
+        subax = fig.add_axes(bbox, facecolor=None)
 
         # plot image
         subax.imshow(self.rgba, **imshow_kwargs)
