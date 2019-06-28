@@ -71,6 +71,7 @@ venn2_wordcloud(sets)
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 from wordcloud import WordCloud
 from matplotlib_venn import venn2, venn3, venn2_circles, venn3_circles
 
@@ -144,6 +145,7 @@ def venn2_wordcloud(sets,
     # check input as requirements for "sets" are more stringent than for venn2 "subsets"
     assert np.all(type(elem) == set for elem in sets), "All elements of 'sets' arguments need to be sets!"
     assert len(sets) == 2, "Number of sets needs to be 2!"
+    assert np.all([len(s) > 0 for s in sets]), "All sets need to have at least one element!"
 
     # create venn diagram, grab ax
     if not ax:
@@ -255,6 +257,7 @@ def venn3_wordcloud(sets,
     # check input as requirements for "sets" differs from venn3 "subsets"
     assert np.all(type(elem) == set for elem in sets), "All elements of 'sets' arguments need to be sets!"
     assert len(sets) == 3, "Number of sets needs to be 3!"
+    assert np.all([len(s) > 0 for s in sets]), "All sets need to have at least one element!"
 
     # create venn diagram, grab ax
     if not ax:
@@ -328,7 +331,9 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
 
     # remove default subset labels; we will put a word cloud there instead
     for mpl_text in ExtendedVennDiagram.subset_labels:
-        mpl_text.set_text('')
+        if mpl_text: # set intersection may not exist
+            mpl_text.set_text('')
+
 
     # initialise an image that spans the axis
     img = _AxisImage(ax)
@@ -378,7 +383,25 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
 def _get_wordcloud(img, patch, words, word_to_frequency=None, **wordcloud_kwargs):
 
     # get the boolean mask corresponding to each patch
-    path = patch.get_path()
+    if isinstance(patch, Circle):
+        # We need to solve two problems here:
+        # 1) The path of Circle patches is always the unit circle.
+        #    We need to apply the circle transform to the `path` attribute to get
+        #    the correct path.
+        # 2) The Circle object returned by matplotlib-venn is messed up.
+        #    The transform is not doing what it should do.
+        # path = transform.transform_path(old_path)
+
+        # Create a new patch with the same parameters as the given Circle patch.
+        dummy = Circle(patch.center, patch.radius)
+
+        # Apply transform to get the correct path.
+        transform = dummy.get_transform()
+        unit_circle_path = dummy.get_path()
+        path = transform.transform_path(unit_circle_path)
+    else:
+        path = patch.get_path()
+
     mask = path.contains_points(img.pixel_coordinates).reshape((img.y_resolution, img.x_resolution))
 
     # make mask matplotlib-venn compatible

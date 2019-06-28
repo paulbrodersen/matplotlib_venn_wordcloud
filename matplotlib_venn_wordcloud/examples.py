@@ -114,12 +114,31 @@ def ex4():
 
     x = {'sincerely','department', 'usa', 'usa nation'}
     y = {'sincerely','security','usa democracy'}
-
     s = (x,y)
 
     v = venn2_wordcloud(s)
 
-    plt.show()
+
+
+def ex5():
+    """
+    Issue #4:
+    https://github.com/paulbrodersen/matplotlib_venn_wordcloud/issues/4
+
+    Handle non-overlapping sets gracefully.
+    """
+    from matplotlib import pyplot as plt
+    from matplotlib_venn_wordcloud import venn2_wordcloud
+
+    x = set('abcd')
+    y = set('efgh')
+    s2 = (x,y)
+
+    v2 = venn2_wordcloud(s2)
+
+    z = set('ijkl')
+    s3 = (x, y, z)
+    v3 = venn3_wordcloud(s3)
 
 
 if __name__ == "__main__":
@@ -128,5 +147,6 @@ if __name__ == "__main__":
     ex2()
     ex3()
     ex4()
+    ex5()
 
     plt.show()
