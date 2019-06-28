@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name = 'matplotlib_venn_wordcloud',
-    version = '0.2.2',
+    version = '0.2.3',
     description = 'Create a Venn diagram with word clouds corresponding to each subset.',
     author = 'Paul Brodersen',
     author_email = 'paulbrodersen+matplotlib_venn_wordcloud@gmail.com',
