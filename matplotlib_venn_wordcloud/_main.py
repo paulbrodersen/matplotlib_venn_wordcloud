@@ -124,7 +124,6 @@ def venn2_wordcloud(sets,
             - background_color (None)
             - mode ("RGBA")
             - mask (computed based on subset patches)
-            - max_font_size (computed to keep font sizes consistent across patches)
 
     Returns:
     --------
@@ -238,7 +237,6 @@ def venn3_wordcloud(sets,
             - background_color (None)
             - mode ("RGBA")
             - mask (computed based on subset patches)
-            - max_font_size (computed to keep font sizes consistent across patches)
 
     Returns:
     --------
@@ -344,12 +342,15 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
     # initialise an image that spans the axis
     img = _AxisImage(ax)
 
+    # --------------------------------------------------------------------------------
+    # Here be dragons!
+
     # figure out maximum fontsize for each set/wordcloud,
     # such that the fontsizes across sets/wordclouds are consistent with the relative frequencies
     # TODO: also take word bbox width into account
     max_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
     # max_bbox_widths = np.zeros_like(max_font_sizes)
-    frequencies = np.ones_like(max_font_sizes)
+    frequencies = np.ones_like(max_font_sizes) # the frequency of the word with the maximum font size
     for ii, uid in enumerate(ExtendedVennDiagram.uids):
         wc = _get_wordcloud(img,
                             ExtendedVennDiagram.get_patch_by_id(uid),
@@ -368,6 +369,19 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
 
     idx = np.argmin(max_font_sizes / frequencies)
     max_font_sizes = frequencies * max_font_sizes[idx] / frequencies[idx]
+
+    if 'max_font_size' in wordcloud_kwargs:
+        given_max_font_size = wordcloud_kwargs.popitem('max_font_size')
+
+    if given_max_font_size >= np.max(max_font_sizes):
+        # Ignore the argument.
+        # As is, we already don't have enough space for text objects of that
+        # size in at least one of the patches.
+        pass
+    else:
+        max_font_sizes *= given_max_font_size / np.max(max_font_sizes)
+
+    # --------------------------------------------------------------------------------
 
     # create a word cloud for each patch region and combine word clouds into one image
     for ii, uid in enumerate(ExtendedVennDiagram.uids):
