@@ -187,8 +187,8 @@ def venn2_wordcloud(sets,
     # extend VennDiagram object
     venn.uids = set(word_ids)
 
-    def _func(id):
-        return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
+    def _func(uid):
+        return [word for (word, word_id) in zip(words, word_ids) if word_id==uid]
 
     venn.get_words_by_id = _func
 
@@ -301,8 +301,8 @@ def venn3_wordcloud(sets,
     # extend VennDiagram object
     venn.uids = set(word_ids)
 
-    def _func(id):
-        return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
+    def _func(uid):
+        return [word for (word, word_id) in zip(words, word_ids) if word_id==uid]
 
     venn.get_words_by_id = _func
 
