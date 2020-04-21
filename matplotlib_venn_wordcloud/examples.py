@@ -6,7 +6,9 @@ Example use cases.
 """
 import numpy as np
 import matplotlib.pyplot as plt
+
 from matplotlib_venn_wordcloud import venn2_wordcloud, venn3_wordcloud
+
 
 def ex1():
     """
@@ -35,7 +37,6 @@ def ex1():
     # create visualisation
     venn2_wordcloud(sets)
 
-    return
 
 def ex2():
     """
@@ -51,6 +52,7 @@ def ex2():
                     set_labels=['Hedgehog', 'Wnt', 'Cell Cycle'])
 
     return
+
 
 def ex3():
     """
@@ -101,7 +103,6 @@ def ex3():
                     wordcloud_kwargs=dict(color_func=color_func, relative_scaling=.5),
                     ax=ax)
 
-    return
 
 def ex4():
     """
@@ -117,7 +118,6 @@ def ex4():
     s = (x,y)
 
     v = venn2_wordcloud(s)
-
 
 
 def ex5():
