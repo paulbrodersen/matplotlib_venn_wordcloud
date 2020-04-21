@@ -345,12 +345,26 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
     # --------------------------------------------------------------------------------
     # Here be dragons!
 
+    # The issue is that fontsizes need to be consistent (i.e. reflect
+    # the overall word frequency) across the different patches
+    # (subsets of the venn diagram). However, you can only figure out
+    # the maximum/minimum fontsize for each patch by running the
+    # packing algorithm. So you need to run wordcloud twice, first
+    # without setting the maximum/minimum font size, then with setting
+    # the maximum/minimum fontsize such that the relative word
+    # frequencies appear consistent across patches.
+
     # figure out maximum fontsize for each set/wordcloud,
     # such that the fontsizes across sets/wordclouds are consistent with the relative frequencies
     # TODO: also take word bbox width into account
+    given_max_font_size = wordcloud_kwargs.pop('max_font_size', None)
+    given_min_font_size = wordcloud_kwargs.pop('min_font_size', None)
+
     max_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
+    min_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
+    max_font_size_word_frequencies = np.ones_like(max_font_sizes)
+    min_font_size_word_frequencies = np.ones_like(min_font_sizes)
     # max_bbox_widths = np.zeros_like(max_font_sizes)
-    frequencies = np.ones_like(max_font_sizes) # the frequency of the word with the maximum font size
     for ii, uid in enumerate(ExtendedVennDiagram.uids):
         wc = _get_wordcloud(img,
                             ExtendedVennDiagram.get_patch_by_id(uid),
@@ -358,28 +372,41 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
                             word_to_frequency,
                             **wordcloud_kwargs)
 
-        font_sizes = [item[1] for item in wc.layout_]
         # bbox_widths = [len(item[0][0]) * item[1] for item in wc.layout_] # word, freq
-        max_font_sizes[ii] = np.max(font_sizes)
+        font_sizes = [item[1] for item in wc.layout_]
+        max_idx = np.argmax(font_sizes)
+        min_idx = np.argmin(font_sizes)
+        max_font_sizes[ii] = font_sizes[max_idx]
+        min_font_sizes[ii] = font_sizes[min_idx]
 
         if word_to_frequency:
-            idx = np.argmax(font_sizes)
-            word = wc.layout_[idx][0][0]
-            frequencies[ii] = word_to_frequency[word]
+            max_font_size_word = wc.layout_[max_idx][0][0]
+            max_font_size_word_frequencies[ii] = word_to_frequency[max_font_size_word]
+            min_font_size_word = wc.layout_[min_idx][0][0]
+            min_font_size_word_frequencies[ii] = word_to_frequency[min_font_size_word]
 
-    idx = np.argmin(max_font_sizes / frequencies)
-    max_font_sizes = frequencies * max_font_sizes[idx] / frequencies[idx]
+    idx = np.argmin(max_font_sizes / max_font_size_word_frequencies)
+    max_font_sizes = max_font_size_word_frequencies * max_font_sizes[idx] / max_font_size_word_frequencies[idx]
 
-    if 'max_font_size' in wordcloud_kwargs:
-        given_max_font_size = wordcloud_kwargs.popitem('max_font_size')
+    idx = np.argmin(min_font_sizes / min_font_size_word_frequencies)
+    min_font_sizes = min_font_size_word_frequencies * min_font_sizes[idx] / min_font_size_word_frequencies[idx]
 
-    if given_max_font_size >= np.max(max_font_sizes):
-        # Ignore the argument.
-        # As is, we already don't have enough space for text objects of that
-        # size in at least one of the patches.
-        pass
-    else:
-        max_font_sizes *= given_max_font_size / np.max(max_font_sizes)
+    # rescale min/max font sizes if a value is specified by the user
+    if given_max_font_size:
+        if given_max_font_size >= np.max(max_font_sizes):
+            # Ignore the argument.
+            # As is, we already don't have enough space for text objects of that
+            # size in at least one of the patches.
+            pass
+        else:
+            max_font_sizes *= given_max_font_size / np.max(max_font_sizes)
+
+    if given_min_font_size:
+        if given_min_font_size < np.min(min_font_sizes):
+            # Ignore the argument. All minimum font sizes are larger.
+            pass
+        else:
+            min_font_sizes *= given_min_font_size / np.min(min_font_sizes)
 
     # --------------------------------------------------------------------------------
 
@@ -390,6 +417,7 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
                             ExtendedVennDiagram.get_words_by_id(uid),
                             word_to_frequency,
                             max_font_size=max_font_sizes[ii],
+                            min_font_size=min_font_sizes[ii],
                             **wordcloud_kwargs)
 
         # matplotlib alpha values are between 0.-1.,
