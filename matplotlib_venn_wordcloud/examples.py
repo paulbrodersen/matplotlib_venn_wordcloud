@@ -141,6 +141,54 @@ def ex5():
     v3 = venn3_wordcloud(s3)
 
 
+def ex6():
+    """
+    Issue #5:
+    https://github.com/paulbrodersen/matplotlib_venn_wordcloud/issues/5
+
+    Allow user to specify max_font_size/min_font_size.
+    """
+
+    test_string_1 = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
+
+    test_string_2 = "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
+
+    # tokenize words (approximately at least):
+    sets = []
+    for string in [test_string_1, test_string_2]:
+
+        # get a word list
+        words = string.split(' ')
+
+        # remove non alphanumeric characters
+        words = [''.join(ch for ch in word if ch.isalnum()) for word in words]
+
+        # convert to all lower case
+        words = [word.lower() for word in words]
+
+        sets.append(set(words))
+
+    # create visualisation
+    fig, axes = plt.subplots(2, 2, figsize=(20, 20))
+    ax2, ax3, ax4, ax5 = axes.ravel()
+
+    # These paramater values hould have no effect as the given min and
+    # max font size should be much larger than WC would want them to
+    # be anyway (negative control).
+    venn2_wordcloud(sets, wordcloud_kwargs=dict(max_font_size=1000, min_font_size=0), ax=ax2)
+    ax2.set_title('max_font_size and min_font_size outside range')
+
+    # Positive controls
+    venn2_wordcloud(sets, wordcloud_kwargs=dict(max_font_size=50), ax=ax3)
+    ax3.set_title('max_font_size=50')
+
+    venn2_wordcloud(sets, wordcloud_kwargs=dict(min_font_size=30), ax=ax4)
+    ax4.set_title('min_font_size=30')
+
+    venn2_wordcloud(sets, wordcloud_kwargs=dict(max_font_size=50, min_font_size=30), ax=ax5)
+    ax5.set_title('max_font_size=50, min_font_size=30')
+
+
 if __name__ == "__main__":
 
     ex1()
@@ -148,5 +196,6 @@ if __name__ == "__main__":
     ex3()
     ex4()
     ex5()
+    ex6()
 
     plt.show()
