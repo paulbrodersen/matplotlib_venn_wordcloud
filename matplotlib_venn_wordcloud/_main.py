@@ -71,12 +71,15 @@ venn2_wordcloud(sets)
 
 import numpy as np
 import matplotlib.pyplot as plt
+
 from matplotlib.patches import Circle
 from wordcloud import WordCloud
 from matplotlib_venn import venn2, venn3, venn2_circles, venn3_circles
 
+
 def _default_color_func(*args, **kwargs):
     return '#00000f'
+
 
 def venn2_wordcloud(sets,
                     set_labels=None,
@@ -169,6 +172,7 @@ def venn2_wordcloud(sets,
         # add circle handles to venn
         def _func(idx):
             return venn_circles[idx]
+
         venn.get_circle_by_idx = _func
 
     # make default set labels larger
@@ -185,6 +189,7 @@ def venn2_wordcloud(sets,
 
     def _func(id):
         return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
+
     venn.get_words_by_id = _func
 
     return _venn_wordcloud(venn, ax, word_to_frequency, **wordcloud_kwargs)
@@ -281,6 +286,7 @@ def venn3_wordcloud(sets,
         # add circle handles to venn
         def _func(idx):
             return venn_circles[idx]
+
         venn.get_circle_by_idx = _func
 
     # make default set labels larger
@@ -297,6 +303,7 @@ def venn3_wordcloud(sets,
 
     def _func(id):
         return [word for (word, word_id) in zip(words, word_ids) if word_id==id]
+
     venn.get_words_by_id = _func
 
     return _venn_wordcloud(venn, ax, word_to_frequency, **wordcloud_kwargs)
@@ -333,7 +340,6 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
     for mpl_text in ExtendedVennDiagram.subset_labels:
         if mpl_text: # set intersection may not exist
             mpl_text.set_text('')
-
 
     # initialise an image that spans the axis
     img = _AxisImage(ax)
@@ -379,6 +385,7 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
     img.imshow(interpolation='bilinear')
 
     return ExtendedVennDiagram
+
 
 def _get_wordcloud(img, patch, words, word_to_frequency=None, **wordcloud_kwargs):
 
@@ -427,6 +434,7 @@ def _get_wordcloud(img, patch, words, word_to_frequency=None, **wordcloud_kwargs
 
     return wc
 
+
 class _AxisImage(object):
     """
     Create an image that spans the given axis.
@@ -451,7 +459,7 @@ class _AxisImage(object):
 
         # initialise pixel array
         self.rgba = np.zeros((self.y_resolution, self.x_resolution, 4), dtype=np.float)
-        return
+
 
     def imshow(self, **imshow_kwargs):
         # create a new axis on top of existing axis
@@ -466,4 +474,3 @@ class _AxisImage(object):
         subax.set_frame_on(False)
         subax.set_xticks([])
         subax.set_yticks([])
-        return
