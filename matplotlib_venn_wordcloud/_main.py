@@ -360,17 +360,24 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
     given_max_font_size = wordcloud_kwargs.pop('max_font_size', None)
     given_min_font_size = wordcloud_kwargs.pop('min_font_size', None)
 
-    max_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
-    min_font_sizes = np.zeros((len(ExtendedVennDiagram.uids)))
+    max_font_sizes                 = np.full((len(ExtendedVennDiagram.uids)), np.nan)
+    min_font_sizes                 = np.full_like(max_font_sizes, np.nan)
     max_font_size_word_frequencies = np.ones_like(max_font_sizes)
-    min_font_size_word_frequencies = np.ones_like(min_font_sizes)
+    min_font_size_word_frequencies = np.ones_like(max_font_sizes)
     # max_bbox_widths = np.zeros_like(max_font_sizes)
     for ii, uid in enumerate(ExtendedVennDiagram.uids):
-        wc = _get_wordcloud(img,
-                            ExtendedVennDiagram.get_patch_by_id(uid),
-                            ExtendedVennDiagram.get_words_by_id(uid),
-                            word_to_frequency,
-                            **wordcloud_kwargs)
+        patch = ExtendedVennDiagram.get_patch_by_id(uid)
+        words = ExtendedVennDiagram.get_words_by_id(uid)
+        if (patch is None) and (len(words) > 0):
+            msg = "Patch corresponding to subset {uid} does not exist even though the set appears to be non-empty:\n"
+            for word in words:
+                msg += '    {}\n'.format(word)
+            msg += 'Skipping creation of wordcloud for subset {uid}'.format(uid=uid)
+            import warnings
+            warnings.warn(msg)
+            continue
+
+        wc = _get_wordcloud(img, patch, words, word_to_frequency, **wordcloud_kwargs)
 
         # bbox_widths = [len(item[0][0]) * item[1] for item in wc.layout_] # word, freq
         font_sizes = [item[1] for item in wc.layout_]
@@ -384,6 +391,12 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
             max_font_size_word_frequencies[ii] = word_to_frequency[max_font_size_word]
             min_font_size_word = wc.layout_[min_idx][0][0]
             min_font_size_word_frequencies[ii] = word_to_frequency[min_font_size_word]
+
+    valid = ~np.isnan(max_font_sizes)
+    max_font_sizes                 = max_font_sizes                [valid]
+    min_font_sizes                 = min_font_sizes                [valid]
+    max_font_size_word_frequencies = max_font_size_word_frequencies[valid]
+    min_font_size_word_frequencies = min_font_size_word_frequencies[valid]
 
     idx = np.argmin(max_font_sizes / max_font_size_word_frequencies)
     max_font_sizes = max_font_size_word_frequencies * max_font_sizes[idx] / max_font_size_word_frequencies[idx]
@@ -411,13 +424,16 @@ def _venn_wordcloud(ExtendedVennDiagram, ax, word_to_frequency=None, **wordcloud
     # --------------------------------------------------------------------------------
 
     # create a word cloud for each patch region and combine word clouds into one image
+    ctr = 0
     for ii, uid in enumerate(ExtendedVennDiagram.uids):
-        wc = _get_wordcloud(img,
-                            ExtendedVennDiagram.get_patch_by_id(uid),
-                            ExtendedVennDiagram.get_words_by_id(uid),
-                            word_to_frequency,
-                            max_font_size=max_font_sizes[ii],
-                            min_font_size=min_font_sizes[ii],
+        patch = ExtendedVennDiagram.get_patch_by_id(uid)
+        words = ExtendedVennDiagram.get_words_by_id(uid)
+        if (patch is None):
+            ctr += 1
+            continue
+        wc = _get_wordcloud(img, patch, words, word_to_frequency,
+                            max_font_size=max_font_sizes[ii-ctr],
+                            min_font_size=min_font_sizes[ii-ctr],
                             **wordcloud_kwargs)
 
         # matplotlib alpha values are between 0.-1.,
