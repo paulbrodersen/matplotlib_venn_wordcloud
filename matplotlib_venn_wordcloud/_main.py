@@ -516,7 +516,7 @@ class _AxisImage(object):
         self.pixel_coordinates = np.c_[xgrid.ravel(), ygrid.ravel()]
 
         # initialise pixel array
-        self.rgba = np.zeros((self.y_resolution, self.x_resolution, 4), dtype=np.float)
+        self.rgba = np.zeros((self.y_resolution, self.x_resolution, 4), dtype=np.float64)
 
 
     def imshow(self, **imshow_kwargs):
