@@ -37,7 +37,7 @@ venn2_wordcloud(sets)
 ```
 You can also run [examples.py](./matplotlib_venn_wordcloud/examples.py) as main.
 
-``` 
+```
     python examples.py
 ```
 ## Installation
@@ -47,3 +47,7 @@ Easiest via pip:
 ``` shell
 pip install matplotlib_venn_wordcloud
 ```
+
+## Recent changes
+
+- 0.2.6 Fixed bug that occurred due to numpy's deprecation of np.float
